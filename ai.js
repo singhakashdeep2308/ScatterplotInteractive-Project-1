@@ -4,7 +4,7 @@ const { GoogleGenAI } = require('@google/genai');
 
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-const MODEL_CANDIDATES = ['gemini-3.8-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+const MODEL_CANDIDATES = ['gemini-3.5-flash-lite'];
 
 const SYSTEM_PROMPT = `You are an expert tech-support assistant helping a user troubleshoot a technical issue.
 

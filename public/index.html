@@ -1,176 +1,312 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>AI Troubleshooter</title>
-		<style>
-			body {
-				margin: 0;
-				font-family: Arial, sans-serif;
-				background: #f5f7fb;
-				color: #1f2937;
-			}
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Over the shoulder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eaeff2;--sf:#fff;--ink:#14202b;--mut:#51606d;--bd:#cbd5dc;--ac:#0b6e8a;--on:#fff;--acs:#dff0f5;--er:#a63a1f}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1519;--sf:#182027;--ink:#e6edf1;--mut:#9aabb7;--bd:#2b3841;--ac:#4fb4d0;--on:#06222c;--acs:#173440;--er:#f08a6c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 18px/1.55 "Atkinson Hyperlegible",system-ui,sans-serif}
+header,main{max-width:1040px;margin:0 auto;padding:20px}
+header{padding-bottom:0}
+h1{font-size:30px;margin:0 0 4px;font-weight:700}
+h2{font-size:20px;margin:0 0 8px;font-weight:700}
+.sub{margin:0;color:var(--mut);font-size:16px}
+main{display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:16px}
+#chat{height:46vh;min-height:280px;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px;margin-bottom:12px}
+.b{max-width:85%;padding:10px 14px;border-radius:12px;border:1px solid var(--bd)}
+.b p{margin:0;white-space:pre-wrap}
+.b img{display:block;max-width:220px;width:100%;margin-top:8px;border-radius:8px;border:1px solid var(--bd)}
+.user{align-self:flex-end;background:var(--acs);border-color:transparent}
+.model{align-self:flex-start}
+.note{align-self:center;border:0;color:var(--mut);font-size:16px;text-align:center}
+textarea{width:100%;font:inherit;color:inherit;background:transparent;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;resize:vertical;min-height:64px}
+button{font:inherit;font-weight:700;color:var(--ink);background:transparent;border:1px solid var(--bd);border-radius:10px;padding:9px 16px;cursor:pointer}
+button.p{background:var(--ac);border-color:var(--ac);color:var(--on)}
+button:disabled{opacity:.55;cursor:default}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+#err{color:var(--er);margin:8px 0 0;font-size:16px}
+#vid{width:100%;border-radius:8px;border:1px solid var(--bd);margin-top:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+aside .row{margin:12px 0}
+select{font:inherit;color:inherit;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;max-width:100%}
+</style>
+</head>
+<body>
+<header>
+<h1>Over the shoulder</h1>
+<p class="sub">Describe the problem, share your screen if you like, and get one fix step at a time.</p>
+</header>
+<main>
+<section class="card" aria-label="Conversation">
+<div id="chat" role="log" aria-live="polite"></div>
+<p id="err" role="alert" hidden></p>
+<label for="msg" class="sr">What is going wrong?</label>
+<textarea id="msg" placeholder="My printer says it is offline"></textarea>
+<div class="row">
+<button class="p" id="ask">Ask</button>
+<button id="mic" aria-pressed="false">Speak</button>
+<button id="done">Done, next step</button>
+<button id="fail">That didn't work</button>
+<button id="reset">New problem</button>
+<span id="status" aria-live="polite"></span>
+</div>
+<div class="row">
+<label><input type="checkbox" id="speak" checked> Speak answers</label>
+<label><input type="checkbox" id="auto" checked> Send automatically after I speak</label>
+<button id="replay">Play again</button>
+</div>
+</section>
+<aside class="card">
+<h2>Your screen</h2>
+<p id="state" class="sub">Not sharing</p>
+<div class="row">
+<button id="share">Share my screen</button>
+<button id="stop" hidden>Stop sharing</button>
+</div>
+<label for="delay" class="sub">Take the screenshot</label>
+<select id="delay">
+<option value="0">immediately</option>
+<option value="3">after 3 seconds</option>
+<option value="5" selected>after 5 seconds</option>
+<option value="10">after 10 seconds</option>
+</select>
+<p class="sub">Tip: share the window or tab that has the problem, not this one. If you share your whole screen, press Ask, then switch to the problem. You will hear a beep for each second before the screenshot.</p>
+<p class="sub">You choose what to share. While sharing, a screenshot is attached to each message you send, and you can see it in the conversation.</p>
+<video id="vid" autoplay muted playsinline hidden></video>
+</aside>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const MOCK = new URLSearchParams(location.search).has('mock'); // open /?mock=1 to test without a backend
+let messages = [], stream = null, busy = false, lastAudio = null, lastReply = '', mockN = 0;
 
-			.container {
-				max-width: 860px;
-				margin: 40px auto;
-				background: #ffffff;
-				border-radius: 16px;
-				padding: 24px;
-				box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1);
-			}
+const add = (cls, text, img) => {
+  const d = document.createElement('div');
+  d.className = 'b ' + cls;
+  const p = document.createElement('p');
+  p.textContent = text;
+  d.append(p);
+  if (img) {
+    const i = new Image();
+    i.src = 'data:image/jpeg;base64,' + img;
+    i.alt = 'Screenshot sent with this message';
+    d.append(i);
+  }
+  $('chat').append(d);
+  $('chat').scrollTop = $('chat').scrollHeight;
+};
+const err = m => { $('err').textContent = m; $('err').hidden = !m; };
+const setBusy = b => {
+  busy = b;
+  ['ask', 'done', 'fail'].forEach(i => $(i).disabled = b);
+  $('status').textContent = b ? 'Thinking…' : '';
+};
+const greet = () => add('note', 'Describe what is going wrong. If you share your screen, I can look at it too.');
 
-			h1 {
-				margin-top: 0;
-			}
+const stopShare = () => {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null;
+  $('vid').srcObject = null;
+  $('vid').hidden = true;
+  $('share').hidden = false;
+  $('stop').hidden = true;
+  $('state').textContent = 'Not sharing';
+};
+$('share').onclick = async () => {
+  try {
+    stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false, selfBrowserSurface: 'exclude', surfaceSwitching: 'include' });
+    $('vid').srcObject = stream;
+    $('vid').hidden = false; // the video must be rendered, or some browsers give black frames
+    await $('vid').play().catch(() => {});
+    stream.getVideoTracks()[0].onended = stopShare;
+    $('share').hidden = true;
+    $('stop').hidden = false;
+    $('state').textContent = 'Sharing your screen';
+  } catch (e) {
+    err('Screen sharing was cancelled or blocked.');
+  }
+};
+$('stop').onclick = stopShare;
 
-			textarea {
-				width: 100%;
-				min-height: 120px;
-				padding: 14px;
-				border: 1px solid #cbd5e1;
-				border-radius: 10px;
-				resize: vertical;
-				font-size: 16px;
-				box-sizing: border-box;
-			}
+const frame = () => {
+  const v = $('vid');
+  if (!stream || !v.videoWidth || v.readyState < 2) return null;
+  const s = Math.min(1, 1280 / v.videoWidth), c = document.createElement('canvas');
+  c.width = v.videoWidth * s;
+  c.height = v.videoHeight * s;
+  c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.7).split(',')[1];
+};
 
-			.toolbar {
-				display: flex;
-				gap: 12px;
-				margin-top: 12px;
-				flex-wrap: wrap;
-			}
+const ask = async payload => {
+  const r = await fetch('/api/ask', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: payload })
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || 'The helper could not answer (' + r.status + ').');
+  return d.reply;
+};
+const mockReply = async () => {
+  await new Promise(r => setTimeout(r, 700));
+  const list = ['I can see an error message. First, click the Wi-Fi icon and check that Wi-Fi is turned on.',
+    'Good. Now click your network name and choose Disconnect, then connect again.',
+    'That should do it. Try opening a web page to check.'];
+  return list[Math.min(mockN++, list.length - 1)];
+};
+const say = text => {
+  if ('speechSynthesis' in window) { speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(text)); }
+};
+const BROWSER_FALLBACK = false; // set to true to use the browser's own voice when ElevenLabs fails
+const speak = async text => {
+  if (!$('speak').checked) return;
+  if ('speechSynthesis' in window) speechSynthesis.cancel(); // stop any browser voice that is still talking
+  if (lastAudio) { lastAudio.pause(); URL.revokeObjectURL(lastAudio.src); }
+  try {
+    if (MOCK) throw new Error('mock mode');
+    const r = await fetch('/api/speak', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!r.ok) throw new Error('/api/speak returned ' + r.status);
+    lastAudio = new Audio(URL.createObjectURL(await r.blob()));
+    await lastAudio.play();
+  } catch (e) {
+    console.warn('Voice playback failed:', e);
+    lastAudio = null;
+    if (BROWSER_FALLBACK || MOCK) say(text);
+    else err('Could not play the voice. Open the browser console for details.');
+  }
+};
+$('replay').onclick = () => {
+  if (lastAudio) { lastAudio.currentTime = 0; lastAudio.play(); }
+  else if (lastReply && (BROWSER_FALLBACK || MOCK)) say(lastReply);
+};
 
-			button {
-				border: none;
-				border-radius: 10px;
-				background: #2563eb;
-				color: white;
-				padding: 12px 18px;
-				font-size: 14px;
-				cursor: pointer;
-			}
+const beep = f => {
+  try {
+    const c = new (window.AudioContext || window.webkitAudioContext)();
+    const o = c.createOscillator();
+    o.frequency.value = f;
+    o.connect(c.destination);
+    o.start();
+    setTimeout(() => { o.stop(); c.close(); }, 120);
+  } catch (e) {}
+};
+const countdown = async n => {
+  for (let i = n; i > 0; i--) {
+    document.title = 'Capturing in ' + i + '…';
+    $('status').textContent = 'Capturing in ' + i + '…';
+    beep(660);
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  document.title = 'Over the shoulder';
+  beep(990);
+};
 
-			button.secondary {
-				background: #475569;
-			}
+const send = async text => {
+  text = text.trim();
+  if (busy || !text) return;
+  err('');
+  setBusy(true);
+  const delay = stream ? +$('delay').value : 0;
+  if (delay) await countdown(delay); // gives you time to switch to the window with the problem
+  const img = frame();
+  add('user', text, img);
+  // Only the newest message carries an image. Older ones are marked in text.
+  const payload = messages.map(m => ({ role: m.role, text: m.text + (m.shot ? ' [screenshot attached earlier]' : '') }));
+  payload.push(img ? { role: 'user', text, image: img } : { role: 'user', text });
+  messages.push({ role: 'user', text, shot: !!img });
+  $('msg').value = '';
+  try {
+    const reply = MOCK ? await mockReply() : await ask(payload);
+    messages.push({ role: 'model', text: reply });
+    lastReply = reply;
+    add('model', reply);
+    await speak(reply);
+  } catch (e) {
+    messages.pop();
+    err(e.message || 'Something went wrong.');
+  } finally {
+    setBusy(false);
+  }
+};
 
-			.output {
-				margin-top: 24px;
-				padding: 18px;
-				background: #f8fafc;
-				border-radius: 12px;
-				min-height: 120px;
-				white-space: pre-wrap;
-			}
+// Voice input: record with the microphone, send the audio to /api/transcribe, then use the text.
+let rec = null, chunks = [];
+const transcribe = async blob => {
+  setBusy(true);
+  $('status').textContent = 'Transcribing…';
+  try {
+    let text;
+    if (MOCK) text = 'My Wi-Fi says no internet';
+    else {
+      const r = await fetch('/api/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': blob.type || 'audio/webm' },
+        body: blob
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || 'Could not transcribe that (' + r.status + ').');
+      text = (d.text || '').trim();
+    }
+    setBusy(false);
+    if (!text) { err('I did not catch that. Try again.'); return; }
+    $('msg').value = text;
+    if ($('auto').checked) await send(text);
+  } catch (e) {
+    setBusy(false);
+    err(e.message || 'Could not transcribe that.');
+  }
+};
+$('mic').onclick = async () => {
+  if (busy) return;
+  if (rec) { rec.stop(); return; }
+  try {
+    err('');
+    const ms = await navigator.mediaDevices.getUserMedia({ audio: true });
+    if (lastAudio) lastAudio.pause(); // avoid the helper's voice feeding back into the microphone
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    const type = ['audio/webm', 'audio/mp4', 'audio/ogg'].find(t => MediaRecorder.isTypeSupported(t));
+    rec = new MediaRecorder(ms, type ? { mimeType: type } : undefined);
+    chunks = [];
+    rec.ondataavailable = e => chunks.push(e.data);
+    rec.onstop = async () => {
+      ms.getTracks().forEach(t => t.stop());
+      const blob = new Blob(chunks, { type: rec.mimeType });
+      rec = null;
+      $('mic').textContent = 'Speak';
+      $('mic').setAttribute('aria-pressed', 'false');
+      await transcribe(blob);
+    };
+    rec.start();
+    $('mic').textContent = 'Stop and send';
+    $('mic').setAttribute('aria-pressed', 'true');
+    $('status').textContent = 'Listening…';
+  } catch (e) {
+    err('The microphone is blocked or not available.');
+  }
+};
 
-			input[type='file'] {
-				margin-top: 12px;
-			}
-		</style>
-	</head>
-	<body>
-		<div class="container">
-			<h1>AI Troubleshooter</h1>
-
-			<label for="prompt">Describe the problem</label>
-			<textarea id="prompt" placeholder="Example: The page is loading but the button does nothing."></textarea>
-
-			<div class="toolbar">
-				<button id="askBtn">Ask AI</button>
-				<button id="speakBtn" class="secondary">Speak response</button>
-			</div>
-
-			<input id="imageInput" type="file" accept="image/*" />
-
-			<div class="output" id="output">Your AI guidance will appear here.</div>
-		</div>
-
-		<script>
-			const promptInput = document.getElementById('prompt');
-			const output = document.getElementById('output');
-			const askBtn = document.getElementById('askBtn');
-			const speakBtn = document.getElementById('speakBtn');
-			const imageInput = document.getElementById('imageInput');
-
-			let lastReply = '';
-
-			function readFileAsBase64(file) {
-				return new Promise((resolve, reject) => {
-					const reader = new FileReader();
-					reader.onload = () => resolve(reader.result.split(',')[1]);
-					reader.onerror = reject;
-					reader.readAsDataURL(file);
-				});
-			}
-
-			async function sendAskRequest() {
-				const text = promptInput.value.trim();
-				if (!text) {
-					output.textContent = 'Please enter a problem description first.';
-					return;
-				}
-
-				const messages = [{ role: 'user', text }];
-
-				const file = imageInput.files[0];
-				if (file) {
-					messages[0].image = await readFileAsBase64(file);
-				}
-
-				output.textContent = 'Thinking...';
-
-				const res = await fetch('/api/ask', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ messages }),
-				});
-
-				const data = await res.json();
-				if (!res.ok) {
-					throw new Error(data.error || 'Request failed');
-				}
-
-				lastReply = data.reply;
-				output.textContent = lastReply;
-			}
-
-			askBtn.addEventListener('click', async () => {
-				try {
-					await sendAskRequest();
-				} catch (error) {
-					output.textContent = error.message;
-				}
-			});
-
-			speakBtn.addEventListener('click', async () => {
-				if (!lastReply) {
-					output.textContent = 'Ask the AI before trying to speak the answer.';
-					return;
-				}
-
-				try {
-					const response = await fetch('/api/speak', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ text: lastReply }),
-					});
-
-					if (!response.ok) {
-						const data = await response.json();
-						throw new Error(data.error || 'Speech failed');
-					}
-
-					const audioBlob = await response.blob();
-					const audioUrl = URL.createObjectURL(audioBlob);
-					const audio = new Audio(audioUrl);
-					audio.play();
-				} catch (error) {
-					output.textContent = error.message;
-				}
-			});
-		</script>
-	</body>
+$('ask').onclick = () => send($('msg').value);
+$('msg').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send($('msg').value); }
+});
+$('done').onclick = () => send('That worked. What is the next step?');
+$('fail').onclick = () => send('That did not work. Here is my screen now.');
+$('reset').onclick = () => { messages = []; mockN = 0; $('chat').innerHTML = ''; err(''); greet(); };
+greet();
+</script>
+</body>
 </html>
