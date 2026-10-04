@@ -4,6 +4,8 @@ const { GoogleGenAI } = require('@google/genai');
 
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+const MODEL_CANDIDATES = ['gemini-3.8-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+
 const SYSTEM_PROMPT = `You are an expert tech-support assistant helping a user troubleshoot a technical issue.
 
 Rules:
@@ -47,15 +49,30 @@ async function askGemini(messages = []) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-3.8-flash',
-    contents: buildContents(messages),
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-    },
-  });
+  let lastError;
 
-  return response.text || 'I could not generate a response right now.';
+  for (const model of MODEL_CANDIDATES) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: buildContents(messages),
+        config: {
+          systemInstruction: SYSTEM_PROMPT,
+        },
+      });
+
+      return response.text || 'I could not generate a response right now.';
+    } catch (error) {
+      lastError = error;
+      const message = error?.message || '';
+      const isUnavailable = /UNAVAILABLE|NOT_FOUND|RESOURCE_EXHAUSTED|429|404/.test(message);
+      if (!isUnavailable) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError || new Error('Gemini request failed.');
 }
 
 if (require.main === module) {

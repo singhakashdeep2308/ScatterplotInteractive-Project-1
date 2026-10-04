@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>AI Troubleshooter</title>
+		<style>
+			body {
+				margin: 0;
+				font-family: Arial, sans-serif;
+				background: #f5f7fb;
+				color: #1f2937;
+			}
+
+			.container {
+				max-width: 860px;
+				margin: 40px auto;
+				background: #ffffff;
+				border-radius: 16px;
+				padding: 24px;
+				box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1);
+			}
+
+			h1 {
+				margin-top: 0;
+			}
+
+			textarea {
+				width: 100%;
+				min-height: 120px;
+				padding: 14px;
+				border: 1px solid #cbd5e1;
+				border-radius: 10px;
+				resize: vertical;
+				font-size: 16px;
+				box-sizing: border-box;
+			}
+
+			.toolbar {
+				display: flex;
+				gap: 12px;
+				margin-top: 12px;
+				flex-wrap: wrap;
+			}
+
+			button {
+				border: none;
+				border-radius: 10px;
+				background: #2563eb;
+				color: white;
+				padding: 12px 18px;
+				font-size: 14px;
+				cursor: pointer;
+			}
+
+			button.secondary {
+				background: #475569;
+			}
+
+			.output {
+				margin-top: 24px;
+				padding: 18px;
+				background: #f8fafc;
+				border-radius: 12px;
+				min-height: 120px;
+				white-space: pre-wrap;
+			}
+
+			input[type='file'] {
+				margin-top: 12px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>AI Troubleshooter</h1>
+
+			<label for="prompt">Describe the problem</label>
+			<textarea id="prompt" placeholder="Example: The page is loading but the button does nothing."></textarea>
+
+			<div class="toolbar">
+				<button id="askBtn">Ask AI</button>
+				<button id="speakBtn" class="secondary">Speak response</button>
+			</div>
+
+			<input id="imageInput" type="file" accept="image/*" />
+
+			<div class="output" id="output">Your AI guidance will appear here.</div>
+		</div>
+
+		<script>
+			const promptInput = document.getElementById('prompt');
+			const output = document.getElementById('output');
+			const askBtn = document.getElementById('askBtn');
+			const speakBtn = document.getElementById('speakBtn');
+			const imageInput = document.getElementById('imageInput');
+
+			let lastReply = '';
+
+			function readFileAsBase64(file) {
+				return new Promise((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onload = () => resolve(reader.result.split(',')[1]);
+					reader.onerror = reject;
+					reader.readAsDataURL(file);
+				});
+			}
+
+			async function sendAskRequest() {
+				const text = promptInput.value.trim();
+				if (!text) {
+					output.textContent = 'Please enter a problem description first.';
+					return;
+				}
+
+				const messages = [{ role: 'user', text }];
+
+				const file = imageInput.files[0];
+				if (file) {
+					messages[0].image = await readFileAsBase64(file);
+				}
+
+				output.textContent = 'Thinking...';
+
+				const res = await fetch('/api/ask', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ messages }),
+				});
+
+				const data = await res.json();
+				if (!res.ok) {
+					throw new Error(data.error || 'Request failed');
+				}
+
+				lastReply = data.reply;
+				output.textContent = lastReply;
+			}
+
+			askBtn.addEventListener('click', async () => {
+				try {
+					await sendAskRequest();
+				} catch (error) {
+					output.textContent = error.message;
+				}
+			});
+
+			speakBtn.addEventListener('click', async () => {
+				if (!lastReply) {
+					output.textContent = 'Ask the AI before trying to speak the answer.';
+					return;
+				}
+
+				try {
+					const response = await fetch('/api/speak', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ text: lastReply }),
+					});
+
+					if (!response.ok) {
+						const data = await response.json();
+						throw new Error(data.error || 'Speech failed');
+					}
+
+					const audioBlob = await response.blob();
+					const audioUrl = URL.createObjectURL(audioBlob);
+					const audio = new Audio(audioUrl);
+					audio.play();
+				} catch (error) {
+					output.textContent = error.message;
+				}
+			});
+		</script>
+	</body>
+</html>
