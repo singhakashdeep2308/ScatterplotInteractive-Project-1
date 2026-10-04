@@ -6,112 +6,306 @@
 <title>Over the shoulder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eaeff2;--sf:#fff;--ink:#14202b;--mut:#51606d;--bd:#cbd5dc;--ac:#0b6e8a;--on:#fff;--acs:#dff0f5;--er:#a63a1f}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1519;--sf:#182027;--ink:#e6edf1;--mut:#9aabb7;--bd:#2b3841;--ac:#4fb4d0;--on:#06222c;--acs:#173440;--er:#f08a6c}}
+:root{color-scheme:dark;--bg:#0a0f14;--card:#101922;--inset:#131e28;--deep:#0b1218;--bd:#1d2a36;--bd2:#2b3b49;--tx:#e9eff4;--mut:#8b9aa9;--dim:#5d6d7c;--ac:#4cd7f0;--ok:#34d399;--er:#ff8f7e}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:400 18px/1.55 "Atkinson Hyperlegible",system-ui,sans-serif}
-header,main{max-width:1040px;margin:0 auto;padding:20px}
-header{padding-bottom:0}
-h1{font-size:30px;margin:0 0 4px;font-weight:700}
-h2{font-size:20px;margin:0 0 8px;font-weight:700}
-.sub{margin:0;color:var(--mut);font-size:16px}
-main{display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start}
-@media(max-width:860px){main{grid-template-columns:1fr}}
-.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:16px}
-#chat{height:46vh;min-height:280px;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px;margin-bottom:12px}
-.b{max-width:85%;padding:10px 14px;border-radius:12px;border:1px solid var(--bd)}
-.b p{margin:0;white-space:pre-wrap}
-.b img{display:block;max-width:220px;width:100%;margin-top:8px;border-radius:8px;border:1px solid var(--bd)}
-.user{align-self:flex-end;background:var(--acs);border-color:transparent}
-.model{align-self:flex-start}
-.note{align-self:center;border:0;color:var(--mut);font-size:16px;text-align:center}
-textarea{width:100%;font:inherit;color:inherit;background:transparent;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;resize:vertical;min-height:64px}
-button{font:inherit;font-weight:700;color:var(--ink);background:transparent;border:1px solid var(--bd);border-radius:10px;padding:9px 16px;cursor:pointer}
-button.p{background:var(--ac);border-color:var(--ac);color:var(--on)}
-button:disabled{opacity:.55;cursor:default}
-:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
-.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
-#err{color:var(--er);margin:8px 0 0;font-size:16px}
-#vid{width:100%;border-radius:8px;border:1px solid var(--bd);margin-top:8px}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-aside .row{margin:12px 0}
-select{font:inherit;color:inherit;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;max-width:100%}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:400 15px/1.55 "Inter",system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+svg.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,select{font:inherit;color:inherit;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+.row{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}
+.muted{color:var(--mut)}.sm{font-size:13px}.center{text-align:center}
+.top{display:flex;justify-content:space-between;align-items:center;padding:16px 40px;border-bottom:1px solid var(--bd)}
+.logo,.ico-btn,.avatar{display:grid;place-items:center;width:36px;height:36px;border:1px solid var(--bd2);background:var(--inset);border-radius:10px}
+.avatar{border-radius:50%;color:var(--mut)}
+.name{font-weight:600}
+.pill,.btn-h{display:flex;align-items:center;gap:8px;border:1px solid var(--bd2);border-radius:999px;padding:6px 14px;font-size:13px;background:transparent}
+.btn-h{border-radius:10px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.dot.off{background:var(--dim)}.dot.cy{background:var(--ac)}
+main{display:grid;grid-template-columns:minmax(0,1fr) 376px;gap:24px;padding:24px 40px 40px;max-width:1440px;margin:0 auto;align-items:start}
+@media(max-width:980px){main{grid-template-columns:1fr;padding:16px}.top{padding:12px 16px}.top .pill{display:none}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:24px}
+.inset{background:var(--inset);border:1px solid var(--bd);border-radius:16px;padding:20px}
+aside{display:grid;gap:20px}
+.eyebrow{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.09em;font-weight:600;color:var(--mut)}
+.eyebrow svg{width:16px;height:16px}
+h1{font-size:34px;line-height:1.15;margin:10px 0 8px;font-weight:650;letter-spacing:-.01em}
+h2{font-size:18px;font-weight:600;line-height:1.3}
+h3{font-size:17px;font-weight:600}
+.compose{margin-top:22px;border-color:rgba(76,215,240,.35);box-shadow:0 0 0 1px rgba(76,215,240,.07),0 0 32px rgba(76,215,240,.07)}
+.compose label{font-weight:600;font-size:13px}
+.hint{font-size:12px;color:var(--dim)}
+.ta{margin-top:12px;border:1px solid var(--bd2);border-radius:12px;background:var(--deep);padding:14px 16px}
+textarea{width:100%;min-height:56px;resize:none;border:0;outline:0;background:transparent;color:var(--tx);font:inherit;font-size:16px}
+textarea::placeholder{color:var(--dim)}
+.ta .row{margin-top:10px}
+.ghost{display:flex;align-items:center;gap:8px;background:none;border:0;color:var(--mut);padding:6px 8px;border-radius:8px}
+.ghost:hover{color:var(--tx)}
+.ghost.rec{color:var(--er)}
+.primary{display:flex;align-items:center;gap:8px;background:var(--ac);color:#04222a;border:0;border-radius:10px;padding:10px 18px;font-weight:650}
+.outline{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--bd2);background:transparent;border-radius:10px;padding:10px 16px;font-weight:500}
+.outline:hover:not(:disabled){border-color:var(--ac)}
+.wide{width:100%}
+#err{margin-top:12px;color:var(--er);font-size:14px}
+.ans{margin-top:20px}
+.placeholder{padding:36px 8px;text-align:center;color:var(--mut)}
+#loading{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45}}
+@media(prefers-reduced-motion:reduce){#loading{animation:none}}
+#result.dim{opacity:.45}
+.ans-head{display:flex;gap:14px;align-items:flex-start}
+.badge{display:grid;place-items:center;width:40px;height:40px;flex:none;border-radius:12px;background:var(--deep);border:1px solid var(--bd2)}
+.stage{margin-left:auto;text-align:right;font-size:12px;letter-spacing:.06em;font-weight:600;color:var(--ac);display:flex;align-items:center;gap:10px;white-space:nowrap}
+.bar{display:inline-block;width:24px;height:3px;border-radius:2px;background:var(--bd2);margin-left:4px}.bar.on{background:var(--ac)}
+#a-intro{margin:16px 0 6px}
+.actions{list-style:none;margin:8px 0 16px;padding:0}
+.actions li{display:flex;gap:14px;padding:14px 0;border-top:1px solid var(--bd);cursor:pointer}
+.num{display:grid;place-items:center;width:28px;height:28px;flex:none;border-radius:50%;border:1px solid var(--bd2);color:var(--mut);font-size:13px}
+.actions li.active .num{border-color:var(--ac);color:var(--ac)}
+.actions li.done .num{background:var(--ac);border-color:var(--ac);color:#04222a;font-weight:700}
+.actions li.done .at{color:var(--mut);text-decoration:line-through}
+.at{font-weight:600}
+.expect{display:flex;align-items:center;gap:10px;background:var(--deep);border-radius:12px;padding:14px 16px;color:var(--mut);font-size:14px}
+details{margin-top:12px;font-size:13px;color:var(--mut)}
+summary{cursor:pointer}
+details img{display:block;max-width:260px;width:100%;margin-top:8px;border-radius:8px;border:1px solid var(--bd2)}
+.ans-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--bd);padding-top:16px;margin-top:16px}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.status{display:flex;align-items:center;gap:10px;border:1px solid var(--bd2);border-radius:12px;padding:10px 14px;margin:14px 0 12px;font-size:14px}
+.status .muted{margin-left:auto}
+#vid{display:block;width:100%;max-height:160px;object-fit:contain;background:#000;border-radius:10px;border:1px solid var(--bd2);margin-top:12px}
+.how{list-style:none;padding:0;margin:10px 0 4px;display:grid;gap:10px;font-size:14px;color:var(--mut)}
+.how li{display:flex;gap:12px;align-items:center}
+.how b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--bd);font-size:12px;color:var(--tx);font-weight:500}
+aside .center{margin-top:12px}
+.timing{border-top:1px solid var(--bd);padding-top:14px;margin-top:14px;display:grid;gap:2px;font-size:14px}
+.timing .ic{color:var(--mut)}
+.setrows{margin-top:10px}
+.setrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--bd);font-size:14px}
+.setrow:first-child{border-top:0}
+.setrow .ic{color:var(--mut)}
+.tog{display:flex;align-items:center;gap:8px;background:none;border:0;font-weight:600}
+select{background:var(--deep);border:1px solid var(--bd2);border-radius:8px;padding:6px 8px;font-size:13px;max-width:150px}
+dialog{background:var(--card);color:var(--tx);border:1px solid var(--bd2);border-radius:16px;padding:24px;max-width:480px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h2{margin-bottom:10px}dialog p,dialog li{color:var(--mut);margin:8px 0}
+dialog ul{padding-left:20px;margin:8px 0 16px}
 </style>
 </head>
 <body>
-<header>
-<h1>Over the shoulder</h1>
-<p class="sub">Describe the problem, share your screen if you like, and get one fix step at a time.</p>
-</header>
-<main>
-<section class="card" aria-label="Conversation">
-<div id="chat" role="log" aria-live="polite"></div>
-<p id="err" role="alert" hidden></p>
-<label for="msg" class="sr">What is going wrong?</label>
-<textarea id="msg" placeholder="My printer says it is offline"></textarea>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-logo" viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="M11 3l1.8 4.7L17.5 9.5l-4.7 1.8L11 16l-1.8-4.7L4.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></symbol>
+<symbol id="i-upright" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+<symbol id="i-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol id="i-share" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M12 13V8M9.5 10.5 12 8l2.5 2.5"/></symbol>
+<symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+<symbol id="i-volume" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></symbol>
+</defs></svg>
+
+<header class="top">
 <div class="row">
-<button class="p" id="ask">Ask</button>
-<button id="mic" aria-pressed="false">Speak</button>
-<button id="done">Done, next step</button>
-<button id="fail">That didn't work</button>
-<button id="reset">New problem</button>
-<span id="status" aria-live="polite"></span>
+<span class="logo"><svg class="ic"><use href="#i-logo"/></svg></span>
+<div><div class="name">Over the shoulder</div><div class="muted sm">AI-guided troubleshooting</div></div>
 </div>
 <div class="row">
-<label><input type="checkbox" id="speak" checked> Speak answers</label>
-<label><input type="checkbox" id="auto" checked> Send automatically after I speak</label>
-<button id="replay">Play again</button>
+<span class="pill"><i id="pdot" class="dot off"></i><span id="ptxt">Screen not shared</span></span>
+<button id="help" class="btn-h"><svg class="ic"><use href="#i-help"/></svg>Help &amp; privacy</button>
+<span class="avatar" aria-hidden="true"><svg class="ic"><use href="#i-user"/></svg></span>
+</div>
+</header>
+
+<main>
+<section class="card">
+<div class="eyebrow"><svg class="ic"><use href="#i-spark"/></svg>GUIDED SUPPORT</div>
+<h1>What can I help you fix?</h1>
+<p class="muted">Describe what you see in your own words. I'll ask only for the details I need.</p>
+
+<div class="compose inset">
+<div class="row between"><label for="msg">Describe the problem</label><span class="hint">Don't include passwords or private information</span></div>
+<div class="ta">
+<textarea id="msg" placeholder="My printer says it's offline"></textarea>
+<div class="row between">
+<button id="mic" class="ghost" aria-pressed="false"><svg class="ic"><use href="#i-mic"/></svg><span id="miclabel">Voice</span></button>
+<button id="ask" class="primary">Ask <svg class="ic"><use href="#i-upright"/></svg></button>
+</div>
+</div>
+</div>
+<p id="err" role="alert" hidden></p>
+
+<section class="ans inset" aria-live="polite">
+<p id="empty" class="placeholder">Your step-by-step guidance will appear here.</p>
+<p id="loading" class="placeholder" hidden>Looking into it…</p>
+<div id="result" hidden>
+<div class="ans-head">
+<span class="badge"><svg class="ic"><use href="#i-spark"/></svg></span>
+<div><h2 id="a-title"></h2><p id="a-based" class="muted sm"></p></div>
+<div id="a-stage" class="stage"><span id="a-stagetxt"></span><span id="a-bars"></span></div>
+</div>
+<p id="a-intro"></p>
+<ol id="a-actions" class="actions"></ol>
+<div id="a-expect" class="expect"><svg class="ic"><use href="#i-check"/></svg><span id="a-expecttxt"></span></div>
+<details id="a-shot" hidden><summary>Screenshot sent with this message</summary><img id="a-shotimg" alt="Screenshot sent with this message"></details>
+<div class="ans-foot">
+<span class="muted sm">What happened after you tried that?</span>
+<div class="row">
+<button id="replay" class="ghost" title="Listen again"><svg class="ic"><use href="#i-volume"/></svg></button>
+<button id="fail" class="ghost">That didn't work</button>
+<button id="done" class="outline">Done, next step <svg class="ic"><use href="#i-right"/></svg></button>
+</div>
+</div>
 </div>
 </section>
-<aside class="card">
-<h2>Your screen</h2>
-<p id="state" class="sub">Not sharing</p>
-<div class="row">
-<button id="share">Share my screen</button>
-<button id="stop" hidden>Stop sharing</button>
-</div>
-<label for="delay" class="sub">Take the screenshot</label>
-<select id="delay">
-<option value="0">immediately</option>
-<option value="3">after 3 seconds</option>
-<option value="5" selected>after 5 seconds</option>
-<option value="10">after 10 seconds</option>
-</select>
-<p class="sub">Tip: share the window or tab that has the problem, not this one. If you share your whole screen, press Ask, then switch to the problem. You will hear a beep for each second before the screenshot.</p>
-<p class="sub">You choose what to share. While sharing, a screenshot is attached to each message you send, and you can see it in the conversation.</p>
+</section>
+
+<aside>
+<section class="card">
+<div class="card-h"><div><h3>Screen sharing</h3><p class="muted sm">Optional — share only when useful</p></div><span class="ico-btn"><svg class="ic"><use href="#i-share"/></svg></span></div>
+<div class="status"><i id="sdot" class="dot off"></i><b id="state">Not sharing</b><span id="state2" class="muted sm">Nothing is visible</span></div>
+<button id="share" class="outline wide"><svg class="ic"><use href="#i-monitor"/></svg>Share a window</button>
+<button id="stop" class="outline wide" hidden>Stop sharing</button>
 <video id="vid" autoplay muted playsinline hidden></video>
+<div class="timing">
+<div class="row between">
+<label for="delay" class="row"><svg class="ic"><use href="#i-clock"/></svg>Screenshot timing</label>
+<select id="delay"><option value="0">Immediately</option><option value="3">After 3 s</option><option value="5" selected>After 5 s</option><option value="10">After 10 s</option></select>
+</div>
+<details><summary>Why a delay?</summary><p class="muted sm">The screenshot is taken when you press Ask, and Ask is on this page. A short delay gives you time to switch to the window with the problem first, and you'll hear a beep each second. Choose Immediately if you're sharing only that window.</p></details>
+</div>
+<details><summary>How to share</summary>
+<p class="muted sm">Let the assistant view one window so it can point to the exact control you need.</p>
+<ol class="how">
+<li><b>1</b>Choose Share a window.</li>
+<li><b>2</b>Select only the app you want help with.</li>
+<li><b>3</b>Stop sharing whenever you're ready.</li>
+</ol>
+</details>
+<p class="muted sm center">You stay in control. Audio is never shared.</p>
+</section>
+
+<section class="card">
+<div class="card-h"><div><h3>Voice &amp; accessibility</h3><p class="muted sm">Listening and playback preferences</p></div><span class="ico-btn"><svg class="ic"><use href="#i-sliders"/></svg></span></div>
+<div class="setrows">
+<div class="setrow"><span class="row"><svg class="ic"><use href="#i-globe"/></svg>Input language</span><span class="muted">Auto-detect</span></div>
+<div class="setrow"><span class="row"><svg class="ic"><use href="#i-volume"/></svg>Spoken replies</span><button id="spk" class="tog" aria-pressed="true"><i id="spkdot" class="dot cy"></i><b id="spktxt">On</b></button></div>
+</div>
+</section>
+
+<section class="card">
+<div class="row" style="align-items:flex-start">
+<span class="ico-btn"><svg class="ic"><use href="#i-shield"/></svg></span>
+<div><h3 style="font-size:15px">Private by default</h3><p class="muted sm">You choose what the assistant can access</p></div>
+</div>
+<p class="muted" style="margin:16px 0">Your prompt and selected window are used only for this support session. Start a new problem to clear its context.</p>
+<button id="reset" class="outline wide">Start a new problem</button>
+</section>
 </aside>
 </main>
+
+<dialog id="dlg">
+<h2>Help &amp; privacy</h2>
+<ul>
+<li>Share the window or tab that has the problem, not this page. If you share your whole screen, press Ask and then switch to the problem before the screenshot is taken.</li>
+<li>A screenshot is attached only when you send a message while sharing. You can see it under the answer.</li>
+<li>Screenshots go to Gemini to be read. Recordings go to ElevenLabs to be turned into text. This app doesn't save them.</li>
+<li>Don't share windows that show passwords or private information.</li>
+</ul>
+<form method="dialog"><button class="outline">Close</button></form>
+</dialog>
+
 <script>
 const $ = id => document.getElementById(id);
 const MOCK = new URLSearchParams(location.search).has('mock'); // open /?mock=1 to test without a backend
-let messages = [], stream = null, busy = false, lastAudio = null, lastReply = '', mockN = 0;
+const BROWSER_FALLBACK = false; // set to true to use the browser's own voice when ElevenLabs fails
+let messages = [], topic = '', stream = null, busy = false, lastData = null, lastAudio = null;
+let lastSpoken = '', speakOn = true, mockN = 0, rec = null, chunks = [];
 
-const add = (cls, text, img) => {
-  const d = document.createElement('div');
-  d.className = 'b ' + cls;
-  const p = document.createElement('p');
-  p.textContent = text;
-  d.append(p);
-  if (img) {
-    const i = new Image();
-    i.src = 'data:image/jpeg;base64,' + img;
-    i.alt = 'Screenshot sent with this message';
-    d.append(i);
-  }
-  $('chat').append(d);
-  $('chat').scrollTop = $('chat').scrollHeight;
-};
+const trunc = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
 const err = m => { $('err').textContent = m; $('err').hidden = !m; };
-const setBusy = b => {
+const show = () => {
+  $('empty').hidden = !!lastData || busy;
+  $('result').hidden = !lastData;
+  $('result').classList.toggle('dim', busy);
+  $('loading').hidden = !busy;
+};
+const setBusy = (b, label) => {
   busy = b;
   ['ask', 'done', 'fail'].forEach(i => $(i).disabled = b);
-  $('status').textContent = b ? 'Thinking…' : '';
+  if (label) $('loading').textContent = label;
+  show();
 };
-const greet = () => add('note', 'Describe what is going wrong. If you share your screen, I can look at it too.');
 
+// The reply is either plain text or a JSON object. See the README for the JSON shape.
+const parseReply = raw => {
+  try {
+    const d = JSON.parse(raw.replace(/```(?:json)?/g, '').trim());
+    if (d && typeof d === 'object' && (Array.isArray(d.actions) || d.intro || d.title)) return d;
+  } catch (e) {}
+  return { plain: raw.trim() };
+};
+const spokenOf = d => d.spoken || d.plain || [d.intro, ...(d.actions || []).map(a => a.title)].filter(Boolean).join('. ');
+
+const mark = () => { // highlight the first action that is not done yet
+  const lis = [...$('a-actions').children];
+  lis.forEach(l => l.classList.remove('active'));
+  const next = lis.find(l => !l.classList.contains('done'));
+  if (next) next.classList.add('active');
+};
+const render = (d, img) => {
+  lastData = d;
+  $('a-title').textContent = d.title || (d.plain ? 'Here is what to try' : 'Next steps');
+  $('a-based').textContent = 'Based on "' + trunc(topic, 80) + '"';
+  const st = d.stage && +d.stage.total > 0 ? d.stage : null;
+  $('a-stage').hidden = !st;
+  if (st) {
+    const total = Math.min(+st.total, 6), cur = Math.min(Math.max(+st.current || 1, 1), total);
+    $('a-stagetxt').textContent = 'STEP ' + cur + ' OF ' + total;
+    $('a-bars').innerHTML = Array.from({ length: total }, (_, i) => '<i class="bar' + (i < cur ? ' on' : '') + '"></i>').join('');
+  }
+  $('a-intro').textContent = d.intro || d.plain || '';
+  const ol = $('a-actions');
+  ol.innerHTML = '';
+  (d.actions || []).forEach((a, i) => {
+    const li = document.createElement('li');
+    li.tabIndex = 0;
+    li.setAttribute('role', 'checkbox');
+    li.setAttribute('aria-checked', 'false');
+    li.innerHTML = '<span class="num"></span><div><div class="at"></div><div class="muted sm ad"></div></div>';
+    li.querySelector('.num').textContent = i + 1;
+    li.querySelector('.at').textContent = a.title || '';
+    li.querySelector('.ad').textContent = a.detail || '';
+    li.onclick = () => {
+      li.classList.toggle('done');
+      const done = li.classList.contains('done');
+      li.setAttribute('aria-checked', done);
+      li.querySelector('.num').textContent = done ? '✓' : i + 1;
+      mark();
+    };
+    li.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); li.click(); } };
+    ol.append(li);
+  });
+  mark();
+  $('a-expect').hidden = !d.expected;
+  $('a-expecttxt').textContent = 'Expected result: ' + (d.expected || '');
+  $('a-shot').hidden = !img;
+  if (img) $('a-shotimg').src = 'data:image/jpeg;base64,' + img;
+  show();
+};
+
+// Screen sharing
 const stopShare = () => {
   if (stream) stream.getTracks().forEach(t => t.stop());
   stream = null;
@@ -120,6 +314,10 @@ const stopShare = () => {
   $('share').hidden = false;
   $('stop').hidden = true;
   $('state').textContent = 'Not sharing';
+  $('state2').textContent = 'Nothing is visible';
+  $('sdot').className = 'dot off';
+  $('pdot').className = 'dot off';
+  $('ptxt').textContent = 'Screen not shared';
 };
 $('share').onclick = async () => {
   try {
@@ -130,7 +328,11 @@ $('share').onclick = async () => {
     stream.getVideoTracks()[0].onended = stopShare;
     $('share').hidden = true;
     $('stop').hidden = false;
-    $('state').textContent = 'Sharing your screen';
+    $('state').textContent = 'Sharing';
+    $('state2').textContent = 'Your selection is visible';
+    $('sdot').className = 'dot';
+    $('pdot').className = 'dot';
+    $('ptxt').textContent = 'Screen shared';
   } catch (e) {
     err('Screen sharing was cancelled or blocked.');
   }
@@ -147,6 +349,7 @@ const frame = () => {
   return c.toDataURL('image/jpeg', 0.7).split(',')[1];
 };
 
+// Server calls
 const ask = async payload => {
   const r = await fetch('/api/ask', {
     method: 'POST',
@@ -157,19 +360,27 @@ const ask = async payload => {
   if (!r.ok) throw new Error(d.error || 'The helper could not answer (' + r.status + ').');
   return d.reply;
 };
+const MOCKS = [
+  { title: "Let's bring the printer back online", intro: "First, check whether Windows has paused the printer. This won't change your documents or printer settings.", stage: { current: 1, total: 3 },
+    actions: [{ title: 'Open Printers & scanners', detail: 'Settings → Bluetooth & devices → Printers & scanners' }, { title: 'Choose your printer', detail: 'Select the printer, then open the print queue.' }, { title: 'Turn off Use Printer Offline', detail: 'Open the Printer menu and clear the checkmark.' }],
+    expected: 'the status changes to Ready within about 10 seconds.', spoken: 'First, open Printers and scanners in Settings, choose your printer, and turn off Use Printer Offline.' },
+  { title: 'Restart the print service', intro: 'Good. If it still says offline, restarting the print service often clears it.', stage: { current: 2, total: 3 },
+    actions: [{ title: 'Open Services', detail: 'Press Windows + R, type services.msc, press Enter.' }, { title: 'Restart Print Spooler', detail: 'Right-click it and choose Restart.' }],
+    expected: 'the print queue empties and the printer shows Ready.', spoken: 'Open Services, find Print Spooler, and restart it.' },
+  { title: 'All set', intro: 'That should do it. Try printing a test page to check.', stage: { current: 3, total: 3 }, actions: [], spoken: 'That should do it. Try printing a test page.' }
+];
 const mockReply = async () => {
   await new Promise(r => setTimeout(r, 700));
-  const list = ['I can see an error message. First, click the Wi-Fi icon and check that Wi-Fi is turned on.',
-    'Good. Now click your network name and choose Disconnect, then connect again.',
-    'That should do it. Try opening a web page to check.'];
-  return list[Math.min(mockN++, list.length - 1)];
+  return JSON.stringify(MOCKS[Math.min(mockN++, MOCKS.length - 1)]);
 };
+
+// Speaking
 const say = text => {
   if ('speechSynthesis' in window) { speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(text)); }
 };
-const BROWSER_FALLBACK = false; // set to true to use the browser's own voice when ElevenLabs fails
 const speak = async text => {
-  if (!$('speak').checked) return;
+  lastSpoken = text;
+  if (!speakOn || !text) return;
   if ('speechSynthesis' in window) speechSynthesis.cancel(); // stop any browser voice that is still talking
   if (lastAudio) { lastAudio.pause(); URL.revokeObjectURL(lastAudio.src); }
   try {
@@ -191,9 +402,17 @@ const speak = async text => {
 };
 $('replay').onclick = () => {
   if (lastAudio) { lastAudio.currentTime = 0; lastAudio.play(); }
-  else if (lastReply && (BROWSER_FALLBACK || MOCK)) say(lastReply);
+  else if (lastSpoken) speak(lastSpoken);
+};
+$('spk').onclick = () => {
+  speakOn = !speakOn;
+  $('spk').setAttribute('aria-pressed', speakOn);
+  $('spktxt').textContent = speakOn ? 'On' : 'Off';
+  $('spkdot').className = 'dot ' + (speakOn ? 'cy' : 'off');
+  if (!speakOn) { if ('speechSynthesis' in window) speechSynthesis.cancel(); if (lastAudio) lastAudio.pause(); }
 };
 
+// Sending
 const beep = f => {
   try {
     const c = new (window.AudioContext || window.webkitAudioContext)();
@@ -207,23 +426,23 @@ const beep = f => {
 const countdown = async n => {
   for (let i = n; i > 0; i--) {
     document.title = 'Capturing in ' + i + '…';
-    $('status').textContent = 'Capturing in ' + i + '…';
+    $('loading').textContent = 'Capturing in ' + i + '…';
     beep(660);
     await new Promise(r => setTimeout(r, 1000));
   }
   document.title = 'Over the shoulder';
   beep(990);
+  $('loading').textContent = 'Looking into it…';
 };
-
 const send = async text => {
   text = text.trim();
   if (busy || !text) return;
   err('');
-  setBusy(true);
+  if (!messages.length) topic = text;
+  setBusy(true, 'Looking into it…');
   const delay = stream ? +$('delay').value : 0;
   if (delay) await countdown(delay); // gives you time to switch to the window with the problem
   const img = frame();
-  add('user', text, img);
   // Only the newest message carries an image. Older ones are marked in text.
   const payload = messages.map(m => ({ role: m.role, text: m.text + (m.shot ? ' [screenshot attached earlier]' : '') }));
   payload.push(img ? { role: 'user', text, image: img } : { role: 'user', text });
@@ -231,26 +450,39 @@ const send = async text => {
   $('msg').value = '';
   try {
     const reply = MOCK ? await mockReply() : await ask(payload);
+    const d = parseReply(reply);
+    render(d, img);
     messages.push({ role: 'model', text: reply });
-    lastReply = reply;
-    add('model', reply);
-    await speak(reply);
+    setBusy(false);
+    await speak(spokenOf(d));
   } catch (e) {
     messages.pop();
+    if (!messages.length) topic = '';
     err(e.message || 'Something went wrong.');
-  } finally {
     setBusy(false);
   }
 };
+$('ask').onclick = () => send($('msg').value);
+$('msg').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send($('msg').value); }
+});
+$('done').onclick = () => send('That worked. What is the next step?');
+$('fail').onclick = () => send('That did not work. Here is my screen now.');
+$('reset').onclick = () => {
+  messages = []; topic = ''; lastData = null; lastSpoken = ''; mockN = 0;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  if (lastAudio) lastAudio.pause();
+  err('');
+  show();
+};
+$('help').onclick = () => $('dlg').showModal();
 
-// Voice input: record with the microphone, send the audio to /api/transcribe, then use the text.
-let rec = null, chunks = [];
+// Voice input: record the microphone, send the audio to /api/transcribe, then use the text.
 const transcribe = async blob => {
-  setBusy(true);
-  $('status').textContent = 'Transcribing…';
+  setBusy(true, 'Transcribing…');
   try {
     let text;
-    if (MOCK) text = 'My Wi-Fi says no internet';
+    if (MOCK) text = "My printer says it's offline";
     else {
       const r = await fetch('/api/transcribe', {
         method: 'POST',
@@ -264,7 +496,7 @@ const transcribe = async blob => {
     setBusy(false);
     if (!text) { err('I did not catch that. Try again.'); return; }
     $('msg').value = text;
-    if ($('auto').checked) await send(text);
+    await send(text);
   } catch (e) {
     setBusy(false);
     err(e.message || 'Could not transcribe that.');
@@ -286,27 +518,20 @@ $('mic').onclick = async () => {
       ms.getTracks().forEach(t => t.stop());
       const blob = new Blob(chunks, { type: rec.mimeType });
       rec = null;
-      $('mic').textContent = 'Speak';
+      $('miclabel').textContent = 'Voice';
+      $('mic').classList.remove('rec');
       $('mic').setAttribute('aria-pressed', 'false');
       await transcribe(blob);
     };
     rec.start();
-    $('mic').textContent = 'Stop and send';
+    $('miclabel').textContent = 'Stop and send';
+    $('mic').classList.add('rec');
     $('mic').setAttribute('aria-pressed', 'true');
-    $('status').textContent = 'Listening…';
   } catch (e) {
     err('The microphone is blocked or not available.');
   }
 };
-
-$('ask').onclick = () => send($('msg').value);
-$('msg').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send($('msg').value); }
-});
-$('done').onclick = () => send('That worked. What is the next step?');
-$('fail').onclick = () => send('That did not work. Here is my screen now.');
-$('reset').onclick = () => { messages = []; mockN = 0; $('chat').innerHTML = ''; err(''); greet(); };
-greet();
+show();
 </script>
 </body>
 </html>
